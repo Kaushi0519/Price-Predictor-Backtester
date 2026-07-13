@@ -50,4 +50,13 @@ Concepts learned along the way, written in my own words.
 - **Why the result was weak, and that's okay**: with only 4 simple technical features, the model found close to no real signal for next-day direction — consistent with the efficient market hypothesis, which suggests publicly available price/volume patterns get priced in quickly and shouldn't reliably predict short-term direction. An honest weak baseline is more useful than a falsely impressive one, and sets a real bar for Phase 4 to try to beat.
 
 
+## Phase 4 — Random forest vs. baseline
+
+- **Random forest, conceptually**: an ensemble of many decision trees, each trained on a random subset of rows (bagging) and features, with predictions combined by majority vote. Averaging over many differently-trained trees smooths out individual trees' mistakes/noise.
+- **Decision trees and overfitting**: an unconstrained tree keeps splitting until leaves contain very few (or single) training rows, effectively memorizing training data — including its noise — rather than learning a generalizable rule. `max_depth` and similar hyperparameters cap how deep trees can grow to prevent this.
+- **The overfitting tell**: a large gap between training accuracy and test accuracy (72.8% vs. 48.6% here) means the model learned patterns specific to the training set that don't hold up on new data — high train performance alone proves nothing about real-world usefulness.
+- **More model complexity isn't a fix for weak features**: when there's little genuine signal in the inputs, a more flexible model doesn't find more truth — it finds more noise to fit to. Our forest actually performed worse than the simpler logistic regression baseline, because the added flexibility mostly went toward overfitting rather than capturing real structure.
+- **Feature importances**: `.feature_importances_` shows how much each feature contributed to the forest's splits. A near-even split across all features (rather than one dominant one) suggests none of them carries a strong individual signal — a useful diagnostic tool tree-based models give you that logistic regression doesn't as directly.
+
+
 
