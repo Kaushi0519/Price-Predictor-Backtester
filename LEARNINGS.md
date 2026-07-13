@@ -28,4 +28,14 @@ Concepts learned along the way, written in my own words.
 - **Price std vs. returns std ("volatility")**: the standard deviation of raw closing *price* over 5 years (~$45) mostly reflects AAPL's long-term upward trend, not day-to-day choppiness. A proper volatility measure uses the standard deviation of *daily returns* over a rolling window instead — that isolates short-term noise from long-term drift. We'll build that in Phase 2.
 
 
+## Phase 2 — Feature engineering
+
+- **Vectorized operations vs. loops**: pandas/NumPy operations act on an entire column at once instead of looping row-by-row in Python. The looping still happens, but underneath in fast compiled code, not slow Python-level iteration. `.shift()`, `.rolling()`, and arithmetic on whole columns are all vectorized.
+- **`.shift(N)`**: moves a column's values down by N rows, so row *i* holds what used to be at row *i-N*. Used to compare "today" against "N days ago" without a loop — the basis for daily_return (shift 1) and momentum_10 (shift 10).
+- **`.rolling(window=N)`**: creates a sliding window of N consecutive rows that moves forward one row at a time; you then apply an aggregation like `.mean()` or `.std()` to each window. The first N-1 rows are NaN because there aren't enough prior rows yet to fill a full window.
+- **`df['col']` vs. `df.col`**: bracket notation looks up a column by name (like a dictionary key) — needed because column names are just data, not something Python knows about ahead of time. Dot notation is for built-in DataFrame methods/attributes (`.head()`, `.shape`) that pandas defines on every DataFrame. `df.col` also works as a shortcut for columns with simple names, but breaks for names with spaces/special characters, so bracket notation is the safer default.
+- **Volatility on returns, not price**: standard deviation of raw Close price mostly reflects long-term price drift (e.g. AAPL trending up over 5 years), not actual day-to-day choppiness. Computing rolling std on daily_return instead isolates short-term noise from the long-term trend, giving a more meaningful volatility measure.
+- **Data persistence pattern**: pulling from an API is slow and rate-limited; saving one snapshot to data/raw/ and having every downstream notebook load from that CSV instead keeps things fast and makes results reproducible (same data every run, not whatever the API happens to return that day).
+
+
 
