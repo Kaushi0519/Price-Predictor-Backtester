@@ -28,3 +28,11 @@ Project decisions and the reasoning behind them, in the order they were made.
 - **Feature scaling**: added StandardScaler (fit on train only, applied to test) after the unscaled model collapsed to always predicting the majority class.
 - **Result**: ~52.6% accuracy even after scaling, with the model still nearly always predicting "up" — essentially no real signal from these 4 simple technical features for next-day direction. Documented as an honest baseline result rather than iterated on further; revisit feature set/target definition in a later phase if desired.
 
+
+## Phase 4 — Random forest vs. baseline
+
+- **Model**: RandomForestClassifier, n_estimators=100, max_depth=5, random_state=42, trained on the same 4 features/target/split as the Phase 3 baseline (unscaled — tree splits are threshold-based, not sensitive to feature scale).
+- **Result**: train accuracy 72.8% vs. test accuracy 48.6% — a large gap indicating overfitting, and test accuracy actually below both the logistic regression baseline (52.6%) and a coin flip.
+- **Feature importances**: nearly evenly split across all 4 features (0.23–0.29 each), no standout predictor — reinforces that the bottleneck is weak signal in the feature set itself, not model choice.
+- **Conclusion**: did not pursue further hyperparameter tuning here — added model complexity amplified noise-fitting rather than finding real signal. Documented as a learning outcome; future improvement should focus on richer features or a different target definition, not a more powerful model.
+
