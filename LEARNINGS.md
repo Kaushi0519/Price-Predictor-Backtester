@@ -59,4 +59,13 @@ Concepts learned along the way, written in my own words.
 - **Feature importances**: `.feature_importances_` shows how much each feature contributed to the forest's splits. A near-even split across all features (rather than one dominant one) suggests none of them carries a strong individual signal — a useful diagnostic tool tree-based models give you that logistic regression doesn't as directly.
 
 
+## Phase 5 — Backtesting engine
+
+- **Return alignment is a real bug risk**: a prediction on day T forecasts the T→T+1 return, not day T's own (already-realized) return. Naively multiplying a prediction by the already-known `daily_return` column would score the backtest on the wrong, already-past return — not technically future-peeking, but an equally serious correctness bug.
+- **Vectorized conditional logic via multiplication**: since `prediction` is strictly 0/1, `prediction * actual_return` acts as an if/else switch without writing a loop or an explicit conditional — 1 keeps the value, 0 zeroes it out.
+- **`.cumprod()` vs `.cumsum()` for returns**: returns compound (each day's gain/loss applies to the current running balance, not the original principal), so cumulative performance needs `(1 + daily_return).cumprod()`, not a simple running sum — summing would give a misleading result over any multi-day period.
+- **A backtest can confirm a bad finding, not just reveal a new one**: since the model almost always predicted "up," the backtest nearly matched buy-and-hold — that's not evidence of skill, it's the same "no real signal" conclusion from Phase 3/4, now visible in return-curve form. Important not to mistake "close to a naive benchmark" for "pretty good" without checking why.
+- **Transaction costs via `.diff()`**: `.diff()` gives the difference between each row and the one before it; for a 0/1 prediction column, a nonzero diff means the position changed (a trade happened) that day. Costs only matter meaningfully for strategies that trade frequently — a near-buy-and-hold strategy barely feels them.
+
+
 
