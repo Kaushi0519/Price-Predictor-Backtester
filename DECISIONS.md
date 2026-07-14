@@ -36,3 +36,11 @@ Project decisions and the reasoning behind them, in the order they were made.
 - **Feature importances**: nearly evenly split across all 4 features (0.23–0.29 each), no standout predictor — reinforces that the bottleneck is weak signal in the feature set itself, not model choice.
 - **Conclusion**: did not pursue further hyperparameter tuning here — added model complexity amplified noise-fitting rather than finding real signal. Documented as a learning outcome; future improvement should focus on richer features or a different target definition, not a more powerful model.
 
+
+## Phase 5 — Backtesting engine
+
+- **Model used**: Phase 3's logistic regression baseline (not the overfit random forest) — using known-noisy predictions would make backtest results meaningless.
+- **Return alignment**: built `next_day_return` = (next_close - Close) / Close, explicitly the forward-looking T→T+1 return, instead of the already-realized `daily_return` column — avoids a subtle misalignment bug where the backtest would score a return that happened before the prediction was made.
+- **Strategy logic**: simple long/cash — hold the stock on days predicted "up" (capture actual_return), sit in cash on days predicted "down" (capture 0). Implemented via `prediction * actual_return` rather than an if/else, since prediction is already 0/1.
+- **Transaction costs**: modeled as a flat 0.1% per trade, applied only on days where the prediction flipped from the previous day (detected via `.diff()`).
+- **Result**: strategy ~49.45% return before costs, ~48.86% after costs (4 trades total, so costs barely mattered) — nearly matching buy-and-hold, consistent with the model's Phase 3/4 finding that it carries no real predictive signal for next-day direction.
