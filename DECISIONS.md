@@ -44,3 +44,17 @@ Project decisions and the reasoning behind them, in the order they were made.
 - **Strategy logic**: simple long/cash — hold the stock on days predicted "up" (capture actual_return), sit in cash on days predicted "down" (capture 0). Implemented via `prediction * actual_return` rather than an if/else, since prediction is already 0/1.
 - **Transaction costs**: modeled as a flat 0.1% per trade, applied only on days where the prediction flipped from the previous day (detected via `.diff()`).
 - **Result**: strategy ~49.45% return before costs, ~48.86% after costs (4 trades total, so costs barely mattered) — nearly matching buy-and-hold, consistent with the model's Phase 3/4 finding that it carries no real predictive signal for next-day direction.
+
+## Phase 6 — Skipped
+
+- **News source considered**: yfinance's `.news` (chosen for consistency with the rest of the pipeline — no extra API key/signup, same library as Phase 1).
+- **Why skipped**: `.news` only returns a handful of recent headlines with no historical date-range control, incompatible with the 5-year historical dataset used for training/backtesting in Phases 3-5. Building the fetch→LLM-sentiment-score pipeline without a valid retrain/compare step didn't add enough learning value to justify the added complexity (news API, Anthropic API, prompt design) for this project.
+- **Revisit condition**: only worth reopening if a news source with real historical range is found later.
+
+## Phase 7 — Docker
+
+- **What gets containerized**: not the notebooks directly — consolidated the Phase 3 model + Phase 5 backtest logic into a single script, `src/run_backtest.py`, and containerized that instead. Notebooks are for interactive exploration; a container needs one clean command in, one result out.
+- **No live API calls at runtime**: the script reads from the already-committed `data/processed/aapl_features.csv` rather than re-pulling from yfinance, so the container doesn't need network access to produce a result.
+- **Base image**: `python:3.11-slim` — has Python preinstalled, smaller than the full `python` image since it skips extras we don't need.
+- **Dockerfile layer order**: `COPY requirements.txt` + `RUN pip install` happens *before* `COPY src/` and `COPY data/processed/` — keeps the dependency-install layer cached across rebuilds so editing code doesn't force a full reinstall every time.
+- **`.dockerignore`**: excludes `venv/`, `.git/`, notebooks, `data/raw/`, `.env`, etc. — kept as a safety net even though the Dockerfile only explicitly copies `src/` and `data/processed/` (no blanket `COPY . .`).

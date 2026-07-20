@@ -68,4 +68,16 @@ Concepts learned along the way, written in my own words.
 - **Transaction costs via `.diff()`**: `.diff()` gives the difference between each row and the one before it; for a 0/1 prediction column, a nonzero diff means the position changed (a trade happened) that day. Costs only matter meaningfully for strategies that trade frequently — a near-buy-and-hold strategy barely feels them.
 
 
+## Phase 7 — Docker
+
+- **The problem Docker solves**: "works on my machine" — a script that depends on a specific Python version and package versions can break on a different machine, or the same machine a year later with different versions installed. Docker packages code + runtime + dependencies together so it runs identically anywhere Docker is installed.
+- **Image vs. container**: an image is the frozen, packaged blueprint (built once from a Dockerfile); a container is a running instance of that image — same relationship as a class and an object.
+- **Dockerfile as a layered recipe**: each instruction (`FROM`, `WORKDIR`, `COPY`, `RUN`, `CMD`) adds a cached layer. Reordering instructions so rarely-changing steps (installing dependencies) come before frequently-changing ones (copying code) means rebuilds after a small code edit don't redo the slow parts.
+- **`RUN` vs `CMD`**: `RUN` executes during the *build* and bakes its result into the image (e.g., installing packages once); `CMD` is the command that runs when a container *starts* — it's what makes "runs with one command" possible.
+- **Notebooks vs. scripts for deployment**: notebooks are great for interactive exploration but awkward to run headlessly/reproducibly. Consolidating already-understood model + backtest logic into a plain `.py` script with functions and an `if __name__ == "__main__":` entrypoint made it something Docker (or anything else) could run as one clean unit.
+- **Containers don't need internet by default**: since our script reads from an already-committed CSV instead of calling the yfinance API live, the container never needs network access to produce a result — a real pattern (bake in what you can, don't assume outside services are reachable).
+- **Docker's origins**: built by Solomon Hykes in 2013 on top of Linux kernel features that already existed (namespaces for isolating what a process can see, cgroups for limiting its resource usage). Docker's contribution was making those primitives easy to use via a simple CLI and the Dockerfile format — not inventing isolation itself. It became the de facto standard fast because it solved a universal pain point with a low barrier to entry, similar to how git became the default for version control without being part of any language.
+- **Same pattern scales up**: a single containerized script and a full multi-service production app (web server + database + cache, each in its own container, coordinated by tools like `docker-compose` or Kubernetes) are the same underlying idea at different scale — one command in, one portable, reproducible result out.
+
+
 
